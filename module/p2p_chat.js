@@ -34,7 +34,7 @@ var call_peer_btn = (args) =>
 function bind_call_peer(args){
   $(`.call-peer[data="${args.data.id}"]`).click(function(){
     chrome.tabs.create({
-      url: chrome.extension.getURL(`/peerjs/p2p-chat.html?uid=${args.data.selfID}&wait=${args.data.id}`)
+      url: chrome.runtime.getURL(`/peerjs/p2p-chat.html?uid=${args.data.selfID}&wait=${args.data.id}`)
     });
   });
 }
@@ -46,7 +46,7 @@ export const ui_event = (config) => {
     $('#call_ui').click(function(){
       var param = info.profile ? `?uid=${info.profile.id}` : '';
       chrome.tabs.create({
-        url: chrome.extension.getURL(`/peerjs/p2p-chat.html${param}`)
+        url: chrome.runtime.getURL(`/peerjs/p2p-chat.html${param}`)
       });
     });
     if(info.room)

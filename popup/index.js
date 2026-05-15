@@ -1,16 +1,16 @@
-var bkg = chrome.extension.getBackgroundPage;
+// var bkg = chrome.extension.getBackgroundPage;
 
 function open_manual(){
   let language = window.navigator.userLanguage || window.navigator.language;
   if(language == 'zh-CN' || language == 'zh-TW')
-    chrome.tabs.create({url: chrome.extension.getURL('manuals/manual-zh.html')});
+    chrome.tabs.create({url: chrome.runtime.getURL('manuals/manual-zh.html')});
   else
-    chrome.tabs.create({url: chrome.extension.getURL('manuals/manual-en.html')});
+    chrome.tabs.create({url: chrome.runtime.getURL('manuals/manual-en.html')});
 }
 
 function open_background(){
   let type = $("#storage-type").hasClass('fa-hdd-o') ? 'local' : 'sync';
-  chrome.tabs.create({url: chrome.extension.getURL(`setting/${type}/index.html`)});
+  chrome.tabs.create({url: chrome.runtime.getURL(`setting/${type}/index.html`)});
 }
 
 var nodes = undefined;
@@ -72,7 +72,7 @@ function set_hidden_room(){
 }
 
 function open_tripgen(){
-  chrome.tabs.create({url: chrome.extension.getURL('setting/tripcode.html')});
+  chrome.tabs.create({url: chrome.runtime.getURL('setting/tripcode.html')});
 }
 
 function get_music(callback){
@@ -85,7 +85,7 @@ function get_music(callback){
       ajax: (req) =>
       chrome.runtime.sendMessage(
         { type: 'ajax' },
-        () => bkg().ajax(req))
+        () => ajax(req))
     }, source);
     /* retain ? */
     $('#keyword').val('');
@@ -1717,14 +1717,14 @@ function local_setup(config){
   });
 
   $("#plug").click(function(){
-    chrome.tabs.create({url: chrome.extension.getURL(`setting/plugin/index.html`)});
+    chrome.tabs.create({url: chrome.runtime.getURL(`setting/plugin/index.html`)});
   });
 
   $("#local-setting-btn").click(function(){
     let sel = $('#local-select')[0];
     let optionSelected = $("option:selected", sel);
     let valueSelected = sel.value;
-    chrome.tabs.create({url: chrome.extension.getURL(`setting/plugin/index.html#menu${Object.keys(local_functions).indexOf(valueSelected)}`)});
+    chrome.tabs.create({url: chrome.runtime.getURL(`setting/plugin/index.html#menu${Object.keys(local_functions).indexOf(valueSelected)}`)});
   });
 
   $('#local-select').on('change', function (e){
@@ -1996,7 +1996,7 @@ function header_setup(config){
   $("#manual").click(open_manual);
   $("#cog").click(open_background);
   $("#program").click(function(){
-    chrome.tabs.create({url: chrome.extension.getURL('setting/script/index.html')});
+    chrome.tabs.create({url: chrome.runtime.getURL('setting/script/index.html')});
   });
   $("#video-guide").click(function(){
     chrome.tabs.create({url: 'https://www.youtube.com/playlist?list=PLaNluYBUsQrKe_faeHaFsKo9SkQzkQFOk'});
@@ -2072,7 +2072,7 @@ $(document).ready(function(){
 
   /* ensure activate the background page */
   chrome.runtime.sendMessage({ type: 'popup' },
-    () => bkg().make_switch_panel($, '#switch_panel'));
+    () => make_switch_panel($, '#switch_panel'));
 
   chrome.storage.sync.get((config)=>{
     if(config['lockLevel'] && config['lockLevel'] != 0){

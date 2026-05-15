@@ -556,9 +556,9 @@ function bind_manual(){
   $('#intro').click(() => {
     var language = window.navigator.userLanguage || window.navigator.language;
     if(language == 'zh-CN' || language == 'zh-TW')
-      chrome.tabs.create({url: chrome.extension.getURL('manuals/script-zh.html')});
+      chrome.tabs.create({url: chrome.runtime.getURL('manuals/script-zh.html')});
     else
-      chrome.tabs.create({url: chrome.extension.getURL('manuals/script-en.html')});
+      chrome.tabs.create({url: chrome.runtime.getURL('manuals/script-en.html')});
   })
 }
 

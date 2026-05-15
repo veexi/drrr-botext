@@ -53,7 +53,7 @@ import(`/manuals/manual-${(language == 'zh-CN' || language == 'zh-TW') ? 'zh' : 
 
   function make_pills(ps, index){
     var language = window.navigator.userLanguage || window.navigator.language;
-    var url = chrome.extension.getURL(module.doc_url);
+    var url = chrome.runtime.getURL(module.doc_url);
     return `${Object.keys(ps).map(
                   (idx) => `<li ${(`menu${idx}` === index ? `class="active"` : '')}>
                                 <a class="nav-pill" data-toggle="pill" href="#menu${idx}">
