@@ -184,7 +184,7 @@ function parse_index(raw_index){
 
 function update_index(mirror, mirrors){
   if(mirror != 'Local')
-    fetch(`https://${mirrors[mirror].loc}/bs-pkgs/raw/main/index.json`)
+    fetch(`https://${mirrors[mirror].loc}/bs-pkgs/raw/master/index.json`)
       .then(response => response.json())
       .catch(error => {
         if(mirror != 'Local')
@@ -214,7 +214,7 @@ function install_module(){
   c = $('#category').val();
   m = $('#module').val();
   if(M && c && m){
-    fetch(`https://${mirrors[M].loc}/bs-pkgs/raw/main/${c}/${m}`)
+    fetch(`https://${mirrors[M].loc}/bs-pkgs/raw/master/${c}/${m}`)
       .then(response => response.text())
       .catch(error => {
         $.notify("cannot fetch module", "error");
@@ -244,7 +244,7 @@ function load_module(){
     globalThis.editor.setValue(local_modules[`${c}/${m}`].code)
   }
   else if(M && c && m){
-    fetch(`https://${mirrors[M].loc}/bs-pkgs/raw/main/${c}/${m}`)
+    fetch(`https://${mirrors[M].loc}/bs-pkgs/raw/master/${c}/${m}`)
       .then(response => response.text())
       .catch(error => {
         $.notify("cannot fetch module", "error")
@@ -471,6 +471,11 @@ function set_modules(config){
 
   mirrors = config['bs-mirrors'];
 
+  if(mirrors && mirrors['GitHub'] && mirrors['GitHub'].loc == 'github.com/DrrrChatbots'){
+    mirrors['GitHub'].loc = 'github.com/veexi';
+    chrome.storage.local.set({ 'bs-mirrors': mirrors });
+  }
+
   if(!mirrors){
     mirrors = {
       'Local': {
@@ -478,7 +483,7 @@ function set_modules(config){
         index: {}
       },
       'GitHub': {
-        loc: 'github.com/DrrrChatbots'
+        loc: 'github.com/veexi'
       },
       'Gitee': {
         loc: 'gitee.com/DrrrChatbots'

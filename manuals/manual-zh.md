@@ -1118,7 +1118,7 @@ Save, Clear, Pause, Execute 等快捷鍵只有游標在編輯器裡面時才會�
 
 ![](https://i.imgur.com/XbC57JG.png)
 
-你也可以 fork 一份 [bs-pkgs](https://gitee.com/DrrrChatbots/bs-pkgs) 維護一個 mirror，
+你也可以 fork 一份 [bs-pkgs](https://github.com/veexi/bs-pkgs) 維護一個 mirror，
 然後透過 `add_mirror(alias, repo)` 來添加你的 mirror。
 
 ![](https://i.imgur.com/XpQ4dcG.png)

@@ -1113,7 +1113,7 @@ Done!
 
 ![](https://i.imgur.com/XbC57JG.png)
 
-You can also fork [bs-pkgs](https://gitee.com/DrrrChatbots/bs-pkgs) to maintain a mirror,
+You can also fork [bs-pkgs](https://github.com/veexi/bs-pkgs) to maintain a mirror,
 then use `add_mirror(alias, repo)` to add your mirror.
 
 ![](https://i.imgur.com/XpQ4dcG.png)
