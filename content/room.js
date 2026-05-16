@@ -138,25 +138,27 @@ function MsgDOM2EventObj(msg, info){
       }
     }
     else{
-      text = $(msg).find($('p')).clone().children().remove().end().text();
-      var ue = $(msg).find($('.bubble p a'));
+      var $dd = $(msg).find('dd');
+      text = $dd.find('p').text() || $dd.text();
+      var ue = $dd.find('a');
       if(ue.length) url = ue.attr('href');
-      ue = $(msg).find($('img'));
+      ue = $dd.find('img');
       if(ue.length) url = ue.attr('data-src');
 
-      var $user = $(msg).find('.name span');
+      var $name = $(msg).find('.name');
+      var $user = $name.find('span');
       if($user.length > 1){ // send dm to someone
         user = $user[2].textContent;
         type = event_dmto;
       }
       else{
-        user = $(msg).find('.name span').text();
-        type = msg.classList.contains("secret") ? event_dm : event_msg;
+        user = $user.text() || $name.text();
+        if (msg.classList.contains("secret")) type = event_dm;
+        else if (msg.classList.contains("low") || msg.classList.contains("loudness-3") || msg.classList.contains("whisper")) type = "low";
+        else type = event_msg;
       }
       if(type == event_dm || type == event_dmto){
-        //if(user == roomProfile().name) return;
-        // allow event from me (dm to me, and would be dmto
-        if(user == roomProfile().name) type == event_dmto;
+        if(user == roomProfile().name) type = event_dmto;
       }
     }
   }

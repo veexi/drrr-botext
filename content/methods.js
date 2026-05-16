@@ -50,47 +50,18 @@ var publishMessage = function(args){
     if(args.url) cmd['url'] = args.url;
     ctrlRoom(cmd, redraw, redraw);
   });
-  /*
-  bot_ondm = true;
-  if($('.to-whom').hasClass('on')){
-    prevTo.push($('#to-input').val());
-    $('#to-input').val('');
-    prevWhom = $($('.to-whom')[0]).clone()
-  }
-  if($('#url-input').val()){
-    prevURLs.push([$('#url-input').val(), $('#url-icon').text()])
-    $('#url-input').val('');
-  }
-  if(args.url) $('#url-input').val(args.url);
+}
 
+var lowVoice = function(args){
   zh_conv((cvt)=>{
-    $('textarea[name="message"]').val(args.msg.trim().length ? cvt(args.msg) : '⠀');
-    $('input[name="post"]').click();
-
-    setTimeout(()=>{
-      if(prevTo.length){
-        console.log("recover DM member:", prevTo[0]);
-        $('#to-input').val(prevTo.pop())
-        prevWhom.find('a').click(()=>{
-          $('#to-input').val('');
-          prevWhom.removeClass("on").empty();
-          $('textarea[name="message"]').removeClass("state-secret");
-          $('textarea[name="ext_message"]').removeClass("state-secret");
-        })
-        $($('.to-whom')[0]).replaceWith(prevWhom);
-        console.log("replace");
-      }
-      if(prevURLs.length){
-        [url, type] = prevURLs.pop();
-        $('#url-input').val(url);
-        $('#url-icon').attr('data-status', "filled").text(type);
-      }
-      bot_ondm = false;
-    }, 500);
-
+    var message = args.msg.trim().length ? cvt(args.msg) : '⠀';
+    var cmd = {"message": message, "loudness": 3};
+    var redraw = (data, mes)=>{
+      if(!args.url) draw_message(message);
+    }
+    if(args.url) cmd['url'] = args.url;
+    ctrlRoom(cmd, redraw, redraw);
   });
-
-*/
 }
 
 var enableMe = true;
@@ -580,6 +551,7 @@ function fetchRoom(args, callback) {
 var methods = {}
 methods[post_message] = postMessage;
 methods[publish_message] = publishMessage;
+methods[lowvoice_message] = lowVoice;
 methods[switch_me] = switchMe;
 methods[on_dm_member] = onDmMember;
 methods[off_dm_member] = offDmMember;
