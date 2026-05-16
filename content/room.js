@@ -184,9 +184,6 @@ function MsgDOM2EventObj(msg, info){
 
 function handle_talks(msg){
 
-  if (!msg.dataset || msg.dataset.processed) return;
-  msg.dataset.processed = "true";
-
   let eobj = MsgDOM2EventObj(msg, roomInfo);
 
   if(!eobj) return;

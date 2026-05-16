@@ -1,5 +1,3 @@
-let last_events = {};
-
 chrome.runtime.onMessage.addListener((req, sender, callback) => {
   if(sender.url.match(new RegExp('https://drrr.com/room/.*'))){
     if(req && req.info) {
@@ -12,15 +10,6 @@ chrome.runtime.onMessage.addListener((req, sender, callback) => {
     }
     else{
       globalThis.lastReq = req;
-
-      // Debouncer for identical events within 1000ms
-      let event_key = req.type + '|' + req.user + '|' + req.text;
-      let now = Date.now();
-      if (last_events[event_key] && (now - last_events[event_key] < 1000)) {
-        return; // Skip duplicate event
-      }
-      last_events[event_key] = now;
-
       lambdascript_event_action(req.type, {}, req);
     }
     //console.log(req);
