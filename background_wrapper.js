@@ -9,6 +9,13 @@ chrome.runtime.onInstalled.addListener(() => {
 chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
   // console.log("Background received message:", req);
 
+  if (req && req.getProfile) {
+    chrome.storage.sync.get('profile', (data) => {
+      sendResponse(data && data.profile || null);
+    });
+    return true;
+  }
+
   if (req && req.type === 'popup') {
     // Acknowledge popup initialization
     sendResponse({ status: "ok" });

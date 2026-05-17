@@ -1,13 +1,36 @@
 
 function roomProfile(){
-  Profile = {
+  let icon = "";
+  let id = "";
+  let name = "";
+  let tripcode = "";
+  
+  if (typeof window !== 'undefined' && window.roomProfileData) {
+    icon = window.roomProfileData.icon || "";
+    id = window.roomProfileData.id || "";
+    name = window.roomProfileData.name || "";
+    tripcode = window.roomProfileData.tripcode || "";
+  }
+  else if (typeof roomInfo !== 'undefined' && roomInfo && roomInfo.profile) {
+    icon = roomInfo.profile.icon || "";
+    id = roomInfo.profile.id || "";
+    name = roomInfo.profile.name || "";
+    tripcode = roomInfo.profile.tripcode || "";
+  }
+  
+  if (!icon) icon = $("#user_icon").text() || "";
+  if (!id) id = $("#user_id").text() || "";
+  if (!name) name = $('#user_name').text() || "";
+  if (!tripcode) tripcode = $('#user_tripcode').text() || "";
+
+  let Profile = {
     "device":"desktop",
-    "icon": $("#user_icon").text(),
-    "id": $("#user_id").text(),
-    "lang":$('html').attr('lang'),
-    "name": $('#user_name').text(),
-    "tripcode": $('#user_tripcode').text(),
-    "uid": $("#user_id").text(),
+    "icon": icon,
+    "id": id,
+    "lang":$('html').attr('lang') || "zh-CN",
+    "name": name,
+    "tripcode": tripcode,
+    "uid": id,
     "loc": $('.room-title-name').text()
   };
   return Profile;
@@ -51,6 +74,9 @@ var lowVoice = function(args){
     var cmd = {"message": message, "loudness": 3};
     if(args.url) cmd['url'] = args.url;
     ctrlRoom(cmd);
+    if(typeof draw_message === 'function'){
+      draw_message(message, undefined, true);
+    }
   });
 }
 
@@ -86,10 +112,9 @@ var dmMember = function(args, callback, passOn){
       cmd['to'] = u.id;
       if(args.url) cmd['url'] = args.url;
       ctrlRoom(cmd);
-      //ctrlRoom(cmd, (data)=>{
-      //  draw_message(message, u.id);
-      //}, (data)=>{ alert("dm failed"); });
-      // needn't redraw on dm
+      if(typeof draw_message === 'function'){
+        draw_message(message, u.id);
+      }
     });
   });
   /*

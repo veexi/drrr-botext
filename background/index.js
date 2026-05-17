@@ -121,6 +121,14 @@ function generate_notification(req){
 var error403 = 0;
 chrome.runtime.onMessage.addListener((req, sender, callback) => {
 
+  if(req && req.getProfile){
+    let get = drrr.profile ? f => f() : drrr.getProfile;
+    get(() => {
+      callback && callback(drrr.profile);
+    });
+    return true; // Keep callback channel open for async response
+  }
+
   if(req && req.closeTab){
     chrome.tabs.remove(sender.tab.id, function() { });
   }

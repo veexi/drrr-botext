@@ -525,7 +525,17 @@ $(document).ready(function(){
     , '#bg-url-input', '#name-color-input', '#name-bg-color-input'],
     (config) => {
 
-      chrome.storage.sync.set({'profile': roomProfile()});
+      chrome.runtime.sendMessage({ getProfile: true }, (profile) => {
+        if (profile && (profile.id || profile.name)) {
+          window.roomProfileData = profile;
+          let script = document.createElement('script');
+          script.textContent = `window.extension_profile = ${JSON.stringify(profile)};`;
+          document.documentElement.appendChild(script);
+          script.remove();
+          
+          chrome.storage.sync.set({'profile': roomProfile()});
+        }
+      });
 
       if(!isLockedUser){
 

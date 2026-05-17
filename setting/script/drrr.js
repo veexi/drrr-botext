@@ -65,13 +65,11 @@ function drrr_send(msg, url, to){
   }
 
   if(to){
-    findUser(to, (u)=>{
-      cmd['to'] = u.id;
-      drrr.ctrl(cmd, callback, callback);
-    });
+    sendTab({ fn: dm_member, args: { user: to, msg: msg, url: url } },
+      undefined, callback);
   }
   else{
-    sendTab({ fn: publish_message, args: chatcmd },
+    sendTab({ fn: post_message, args: chatcmd },
       ()=>{ drrr.ctrl(cmd, callback, callback) },
       callback);
   };
