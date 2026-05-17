@@ -40,15 +40,8 @@ var publishMessage = function(args){
   zh_conv((cvt)=>{
     var message = args.msg.trim().length ? cvt(args.msg) : '⠀';
     var cmd = {"message": message};
-    var redraw = (data, mes)=>{
-      if(message.startsWith('/roll')
-        || message.startsWith('/share')
-        || message.startsWith('/leave')) return;
-      if(message.startsWith('/me')) draw_me(message);
-      else if(!args.url) draw_message(message);
-    }
     if(args.url) cmd['url'] = args.url;
-    ctrlRoom(cmd, redraw, redraw);
+    ctrlRoom(cmd);
   });
 }
 
@@ -56,11 +49,8 @@ var lowVoice = function(args){
   zh_conv((cvt)=>{
     var message = args.msg.trim().length ? cvt(args.msg) : '⠀';
     var cmd = {"message": message, "loudness": 3};
-    var redraw = (data, mes)=>{
-      if(!args.url) draw_message(message);
-    }
     if(args.url) cmd['url'] = args.url;
-    ctrlRoom(cmd, redraw, redraw);
+    ctrlRoom(cmd);
   });
 }
 
