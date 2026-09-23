@@ -194,17 +194,6 @@ if(!isLockedUser){
       }
     });
 
-    chrome.storage.local.get('plugins', (config)=>{
-      if(config['plugins']){
-        Object.keys(config['plugins']).forEach(name => {
-          let [mode, loc, enable, ctx] = config['plugins'][name];
-          if(enable && loc == "lounge"){
-            if(mode == 'url') plugTag('script', { src: ctx, })
-            else plugTag('script', { textContent: ctx, })
-          }
-        })
-      }
-    });
   })
 
   chrome.runtime.onMessage.addListener(

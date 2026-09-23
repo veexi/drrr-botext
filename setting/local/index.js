@@ -54,7 +54,7 @@ import(`/manuals/manual-${(language == 'zh-CN' || language == 'zh-TW') ? 'zh' : 
 
   function make_pills(ps, index){
     var language = window.navigator.userLanguage || window.navigator.language;
-    $('#docURL').attr('href', chrome.extension.getURL(module.doc_url));
+    $('#docURL').attr('href', chrome.runtime.getURL(module.doc_url));
     return `
                 ${Object.keys(ps).map(
                   (idx) => `<li ${(`menu${idx}` === index ? `class="active"` : '')}>
@@ -66,12 +66,12 @@ import(`/manuals/manual-${(language == 'zh-CN' || language == 'zh-TW') ? 'zh' : 
 
   function make_tabs(tabs, index, cbk){
     var keys = Object.keys(tabs);
-    $.get(chrome.extension.getURL(module.doc_url), function(data, status){
+    $.get(chrome.runtime.getURL(module.doc_url), function(data, status){
       descs = Object.keys(keys).map(idx => $(data).find(manual[keys[idx]].desc));
       for(desc of descs){
         desc.parent().find('a').each(function(index){
           if(this.getAttribute("href") && this.getAttribute("href").match(/^(#.*)/) !== null){
-            this.setAttribute("href", this.getAttribute("href").replace(/^(#.*)/, chrome.extension.getURL(module.doc_url) + "$1"));
+            this.setAttribute("href", this.getAttribute("href").replace(/^(#.*)/, chrome.runtime.getURL(module.doc_url) + "$1"));
             this.setAttribute("target", "_blank");
           }
         })

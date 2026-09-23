@@ -1,5 +1,19 @@
 prevRoomInfo = undefined;
 roomInfo = undefined;
+let lambdaTimerHeartbeatId;
+
+function setLambdaTimerHeartbeat(active){
+  if(active && !lambdaTimerHeartbeatId){
+    lambdaTimerHeartbeatId = setInterval(() => {
+      chrome.runtime.sendMessage({__drrrLambdaHeartbeat: true},
+        () => void chrome.runtime.lastError);
+    }, 20000);
+  }
+  else if(!active && lambdaTimerHeartbeatId){
+    clearInterval(lambdaTimerHeartbeatId);
+    lambdaTimerHeartbeatId = undefined;
+  }
+}
 
 //var MacroModal = `
 //    <div style="color:#FFFFFF" id="myModal" class="modal fade" role="dialog">
@@ -198,6 +212,7 @@ function handle_talks(msg){
 
 
   function sendMessage(){
+    if(roomInfo) eobj.info = roomInfo;
     chrome.runtime.sendMessage(eobj);
   }
 
@@ -407,7 +422,7 @@ function enable_call_link(){
       var url = new URL($(this).attr('href'));
       url.searchParams.append('uid', roomProfile().id);
       url.searchParams.append('name', roomProfile().name);
-      url = chrome.extension.getURL(`${url.pathname}${url.search}`);
+      url = chrome.runtime.getURL(`${url.pathname}${url.search}`);
 
       chrome.runtime.sendMessage({ newTab: url });
     }
@@ -650,29 +665,16 @@ $(document).ready(function(){
   );
 
   if(isLockedUser) return;
-
-  chrome.storage.local.get('plugins', (config)=>{
-    if(config['plugins']){
-
-      let plugins = Object.keys(config['plugins'])
-        .filter(name => name !== 'chatroom_hooks');
-      plugins.unshift('chatroom_hooks');
-
-      plugins.forEach(name => {
-        let [mode, loc, enable, ctx] = config['plugins'][name];
-        if(enable && loc == "room"){
-          console.log(`plug ${name}`)
-          if(mode == 'url') plugTag('script', { src: ctx, })
-          else plugTag('script', { textContent: ctx, })
-        }
-      })
-    }
-  });
 });
 
 if(!isLockedUser){
   chrome.runtime.onMessage.addListener(
     (req, sender, callback) => {
+    if(req && typeof req.__drrrLambdaTimerHeartbeat === 'boolean'){
+      setLambdaTimerHeartbeat(req.__drrrLambdaTimerHeartbeat);
+      callback && callback();
+      return;
+    }
     console.log(JSON.stringify(req), " from bkg");
     emit_method(req, sender, callback);
   });

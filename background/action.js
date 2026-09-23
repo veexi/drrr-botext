@@ -355,10 +355,10 @@ window._actions = {
         );
       });
   },
-  [action_eval] : window.run_lambda_code_purely,
-  [action_evalbang] : window.run_lambda_code_impurely,
-  [action_call] : window.run_lambda_script_purely,
-  [action_callbang] : window.run_lambda_script_impurely,
+  [action_eval] : (...args) => window.run_lambda_code_purely(...args),
+  [action_evalbang] : (...args) => window.run_lambda_code_impurely(...args),
+  [action_call] : (...args) => window.run_lambda_script_purely(...args),
+  [action_callbang] : (...args) => window.run_lambda_script_impurely(...args),
   [action_nop] : function(){ console.log(arguments) } ,
   /* too quick leading play song failed in content script, so setTimeout */
 }
@@ -468,4 +468,3 @@ function sattr_r(name, callback){
 function sattr_w(name, val, callback){
   chrome.storage.sync.set({[name]: val}, callback);
 }
-

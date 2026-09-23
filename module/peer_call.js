@@ -67,7 +67,7 @@ var call_peer_btn = (args) =>
 function bind_call_peer(args){
   $(`.call-peer[data="${args.data.id}"]`).click(function(){
     chrome.tabs.create({
-      url: chrome.extension.getURL(`/peerjs/audio-chat.html?host=${args.data.selfID}&wait=${args.data.id}`)
+      url: chrome.runtime.getURL(`/peerjs/audio-chat.html?host=${args.data.selfID}&wait=${args.data.id}`)
     });
   });
 }
@@ -79,7 +79,7 @@ export const ui_event = (config) => {
     $('#call_ui').click(function(){
       var param = info.profile ? `?host=${info.profile.id}` : '';
       chrome.tabs.create({
-        url: chrome.extension.getURL(`/peerjs/audio-chat.html${param}`)
+        url: chrome.runtime.getURL(`/peerjs/audio-chat.html${param}`)
       });
     });
     if(info.room)

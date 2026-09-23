@@ -8,13 +8,20 @@
     <link href="/css/font-awesome.min.css" rel="stylesheet">
     <link href="/popup/index.css" rel="stylesheet">
     <script src="/lib/globals.js" type="text/javascript" charset="utf-8"></script>
+    <script src="/lib/load-lambda.mjs" type="module" charset="utf-8"></script>
     <script src="/lib/plugins.js" type="text/javascript" charset="utf-8"></script>
     <script src="/lib/api.js" type="text/javascript" charset="utf-8"></script>
+    <script src="/lib/format.js" type="text/javascript" charset="utf-8"></script>
     <script src="/module/index.js" type="text/javascript" charset="utf-8"></script>
     <script src="/setting/plugin/function.js" type="text/javascript" charset="utf-8"></script>
     <script src="/js/jquery-3.4.1.min.js"></script>
     <script src="/js/bootstrap-switch.min.js"></script>
     <script src="/js/bootstrap.min.js"></script>
+    <script src="/background/utility.js"></script>
+    <script src="/background/music.js"></script>
+    <script src="/setting/script/drrr.js"></script>
+    <script src="/background/action.js"></script>
+    <script src="/background/popup.js"></script>
     <script src="/popup/index.js" type="text/javascript" charset="utf-8"></script>
   </head>
 
@@ -256,6 +263,11 @@
                 </button>
               </div>
             </div>
+
+            <p id="plugin-runtime-note" class="text-warning" style="display:none; margin-top:8px"></p>
+            <button id="authorize-plugin-source" class="btn btn-default btn-xs" type="button" style="display:none">
+              Authorize plugin source site
+            </button>
 
             <div id='plugin-codeblock' style="display:none">
               <hr>

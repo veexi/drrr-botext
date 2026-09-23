@@ -35,3 +35,12 @@ function ajax(request){
   $.ajax(request);
 }
 
+function rememberNotificationAction(notificationId, action, callback){
+  if(!notificationId || !action){
+    callback && callback();
+    return;
+  }
+  chrome.storage.local.set({
+    [`drrr-notification-action:${notificationId}`]: action
+  }, callback);
+}

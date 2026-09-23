@@ -1,19 +1,19 @@
 {
-    "manifest_version": 2,
+    "manifest_version": 3,
 
     "name": "drrr chatbot extension",
     "description": "chatbot extension for drrr.com",
     "short_name": "drrrbot",
     "version": "1.843",
+    "minimum_chrome_version": "120",
     "default_locale": "en",
     "current_locale": "zh",
-    "browser_action": {
+    "action": {
         "default_icon": "icon.png",
         "default_popup": "/popup/index.html"
     },
     "background": {
-        "page": "/background/index.html",
-        "persistent": false
+        "service_worker": "background/service-worker.js"
     },
     "content_scripts": [
         {
@@ -51,27 +51,39 @@
         "storage",
         "cookies",
         "notifications",
+        "userScripts"
+    ],
+    "optional_host_permissions": [ "http://*/*", "https://*/*" ],
+    "web_accessible_resources": [
+        {
+            "resources": [
+                "images/*.png",
+                "live2d-widget/*",
+                "fonts/*",
+                "setting/*.mjs"
+            ],
+            "matches": [ "<all_urls>" ]
+        }
+    ],
+    "host_permissions": [
         "*://drrr.com/*",
         "*://tinyurl.com/*",
         "*://keeper-cat.fly.dev/*",
         "*://link.hhtjim.com/*",
-        "http://music.163.com/api/*",
+        "http://music.163.com/*",
+        "https://music.163.com/*",
         "https://store.line.me/*",
         "https://api.telegram.org/*",
         "https://api.tenor.com/*",
         "http://api.giphy.com/*",
+        "https://api.giphy.com/*",
         "https://github.com/*",
         "https://gitee.com/*",
         "https://script.google.com/*",
         "https://music.liuzhijin.cn/*"
     ],
-    "optional_permissions": [ "http://*/*", "https://*/*" ],
-    "web_accessible_resources": [
-         "images/*.png",
-         "live2d-widget/*",
-         "fonts/*",
-         "setting/*.mjs"
-    ],
-    "content_security_policy": "script-src 'self' https://static.line-scdn.net; object-src 'self'",
+    "content_security_policy": {
+        "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
+    },
     "incognito": "split"
 }

@@ -84,9 +84,7 @@ function loadWidget(config) {
         if (!window.ASTEROIDSPLAYERS) window.ASTEROIDSPLAYERS = [];
         window.ASTEROIDSPLAYERS.push(new Asteroids());
       } else {
-        let script = document.createElement("script");
-        script.src = "https://cdn.jsdelivr.net/gh/GalaxyMimi/CDN/asteroids.js";
-        document.head.appendChild(script);
+        showMessage("小遊戲尚未載入，請重新開啟 Live2D。", 4000, 9);
       }
     });
     //document.querySelector("#waifu-tool .fa-user-circle").addEventListener("click", loadOtherModel);

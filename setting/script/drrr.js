@@ -223,6 +223,10 @@ drrr_builtins = {
     })
   },
   'log': function(){
+    if(typeof document === 'undefined'){
+      console.log(...arguments);
+      return;
+    }
     var logger = document.getElementById('log');
     for (var i = 0; i < arguments.length; i++) {
       if (typeof arguments[i] == 'object') {
@@ -240,6 +244,10 @@ drrr_builtins = {
     });
   },
   'clear': function () {
+    if(typeof document === 'undefined'){
+      console.clear();
+      return;
+    }
     var logger = document.getElementById('log');
     logger.innerHTML = "";
   }
@@ -254,8 +262,10 @@ drrr.setInfo = function(info){
   if(info){
     globalThis.drrr.prevInfo = globalThis.drrr.info;
     globalThis.drrr.info = info;
-    if(info.prfile)
+    if(info.profile){
       globalThis.drrr.profile = info.profile;
+      Profile = info.profile;
+    }
     if(info.user)
       globalThis.drrr.user = info.user;
     if(info.room){
@@ -276,6 +286,21 @@ drrr.getLounge = function(callback){
 }
 
 drrr.getProfile = function(callback){
+  if(typeof document === 'undefined'){
+    return chrome.storage.sync.get('profile', (config) => {
+      if(config.profile){
+        Profile = config.profile;
+        globalThis.drrr.profile = Profile;
+        if(callback) callback(Profile);
+      } else {
+        getProfile((profile)=>{
+          Profile = profile;
+          if(profile) globalThis.drrr.profile = profile;
+          if(callback) callback(profile);
+        });
+      }
+    });
+  }
   getProfile((profile)=>{
     Profile = profile;
     if(profile) globalThis.drrr.profile = profile;

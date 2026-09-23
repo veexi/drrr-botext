@@ -534,18 +534,19 @@ function plug_live2d(){
       add_tag(chrome.runtime.getURL("live2d-widget/font-awesome.min.css")),
       add_tag(chrome.runtime.getURL("live2d-widget/waifu.css")),
       add_tag(chrome.runtime.getURL("live2d-widget/tw_cn.js")),
-      add_tag(chrome.runtime.getURL("live2d-widget/live2d.min.js")),
-      add_tag(chrome.runtime.getURL("live2d-widget/waifu-tips.js")),
     ]).then(() => {
-      live2d = `https://unpkg.com/live2d-widget-model-tororo@1.0.5/assets/tororo.model.json`
-      //live2d = `https://unpkg.com/live2d-widget-model-wanko@1.0.5/assets/wanko.model.json`
-      //live2d = `https://unpkg.com/live2d-widget-model-hijiki@1.0.5/assets/hijiki.model.json`
-      chrome.storage.sync.get(["live2d", "live2d-size"], (config)=>{
+      return add_tag(chrome.runtime.getURL("live2d-widget/live2d.min.js"));
+    }).then(() => {
+      return add_tag(chrome.runtime.getURL("live2d-widget/asteroids.js"));
+    }).then(() => {
+      return add_tag(chrome.runtime.getURL("live2d-widget/waifu-tips.js"));
+    }).then(() => {
+      const defaultModel = `https://unpkg.com/live2d-widget-model-tororo@1.0.5/assets/tororo.model.json`;
+      chrome.storage.sync.get(["live2d", "live2d-size"], config => {
         add_tag(chrome.runtime.getURL("live2d-widget/load.js"),
-          (config['live2d'] || live2d) + ' ' + (config['live2d-size'] || '300x300')
-        )
+          (config['live2d'] || defaultModel) + ' ' + (config['live2d-size'] || '300x300'));
       })
-    });
+    }).catch(error => console.error('Live2D setup failed:', error));
   }
 }
 

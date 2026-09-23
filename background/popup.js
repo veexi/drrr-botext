@@ -238,24 +238,16 @@ function noteEmptySetting(state, event, switch_id, func_name, callback){
     if(!config[the_sid]){
       var setting_name = unsid(the_sid);
       event.data.$(`#${switch_id}`).bootstrapSwitch('state', false, true);
-      chrome.notifications.create(
-        chrome.extension.getURL(`setting/${type}/index.html`)
-        + `#menu${Object.keys(settings).indexOf(setting_name)}`,
-        {
+      const settingURL = chrome.runtime.getURL(`setting/${type}/index.html`)
+        + `#menu${Object.keys(settings).indexOf(setting_name)}`;
+      rememberNotificationAction(settingURL, {url: settingURL}, () => {
+        chrome.notifications.create(settingURL, {
           type: "basic",
           iconUrl: '/icon.png',
           title: `EMPTY ${setting_name.toUpperCase()} RULE`,
           message: `To enable ${setting_name.toLowerCase()}, make some rules`
         });
-
-      chrome.tabs.create({url: chrome.extension.getURL(`setting/${type}/index.html`)
-        + `#menu${Object.keys(settings).indexOf(setting_name)}`});
-
-      chrome.notifications.onClicked.addListener(function(notificationId) {
-        // console.log(notificationId);
-        if(notificationId.match(new RegExp('chrome-extension://')))
-          chrome.tabs.create({url: notificationId});
-        chrome.notifications.clear(notificationId);
+        chrome.tabs.create({url: settingURL});
       });
       typedStorage(event).set({
         [switch_id]: false
@@ -654,22 +646,15 @@ function URL_TYPE(url){
 
 function sendNoti(config, type, e){
   [title, content] = log2note(type, e);
-  chrome.notifications.create(
-    e.url ? `URL${e.url}` : undefined,
-    {
+  const notificationId = e.url ? `URL${e.url}` : undefined;
+  const create = () => chrome.notifications.create(notificationId, {
       type: "basic",
       iconUrl: '/icon.png',
       title: `${title}`,
       message: content
     });
-  if(e.url){
-    chrome.notifications.onClicked.addListener(function(notificationId) {
-      if(notificationId.startsWith('URL')){
-        chrome.tabs.create({url: notificationId.substring(3)});
-        chrome.notifications.clear(notificationId);
-      }
-    });
-  }
+  if(e.url) rememberNotificationAction(notificationId, {url: e.url}, create);
+  else create();
 }
 
 function NotiEvents(){
@@ -1034,4 +1019,4 @@ function make_switch_panel($, panel_id){
   });
 }
 
-var popupURL = chrome.extension.getURL('popup/index.html');
+var popupURL = chrome.runtime.getURL('popup/index.html');

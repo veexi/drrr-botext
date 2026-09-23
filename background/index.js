@@ -61,65 +61,96 @@ new Handler("music", [],
 );
 
 function generate_notification(req){
-  var func = () =>
-    chrome.notifications.create(
-      req.notification.url || req.notification.sel || undefined, {
+  const note = req.notification;
+  var func = () => {
+    const notificationId = note.url || note.sel || undefined;
+    const create = () => chrome.notifications.create(notificationId, {
         type: "basic",
         iconUrl: '/icon.png',
-        title: req.notification.title,
-        message: req.notification.msg
-      }
-    );
+        title: note.title,
+        message: note.msg
+      });
+    if(notificationId && (note.url || note.sel)){
+      rememberNotificationAction(notificationId, {
+            url: note.url || '',
+            sel: note.sel || '',
+            exit: Boolean(note.exit),
+      }, create);
+    } else create();
+  };
 
-  if(req.notification.clear){
+  if(note.clear){
     chrome.notifications.getAll((notes)=>{
       for(n in notes)
-        if(n.match(new RegExp(req.notification.pattern)))
+        if(n.match(new RegExp(note.pattern)))
           chrome.notifications.clear(n);
       func();
     })
   }
   else func();
-
-  if(req.notification.url)
-    chrome.notifications.onClicked.addListener(
-      ((exit, url)=>
-        function(toURL) {
-          console.log(toURL);
-          if(toURL !== url) return;
-          if(exit){
-            sendTab({ fn: leave_room, args: {jump: toURL} });
-          }
-          else if(toURL.includes('drrr_webpage')){
-            chrome.tabs.create({
-              active: false,
-              pinned: false, // ture is interesting
-              url: 'https://drrr.com/'
-            });
-          }
-          else chrome.tabs.update({
-            url: toURL
-          });
-          chrome.notifications.getAll((notes)=>{
-            for(n in notes)
-              if(n.startsWith('https://drrr.com/room/?id='))
-                chrome.notifications.clear(n);
-          });
-        }
-      )(req.notification.exit, req.notification.url));
-  else if(req.notification.sel)
-    chrome.notifications.onClicked.addListener(
-      ((sel)=>
-        function(toSel) {
-          console.log(toSel);
-          if(toSel !== sel) return;
-          sendTab({ fn: scroll_to, args: {sel: sel}}, undefined, undefined, undefined, 'https://drrr.com/lounge/*');
-        }
-      )(req.notification.sel));
 }
+
+function notificationActionKey(notificationId){
+  return `drrr-notification-action:${notificationId}`;
+}
+
+// Extension service worker events must be registered synchronously when the
+// worker starts. The action itself is persisted so clicks still work after an
+// idle shutdown/restart.
+chrome.notifications.onClicked.addListener((notificationId) => {
+  const key = notificationActionKey(notificationId);
+  chrome.storage.local.get(key, (stored) => {
+    const action = stored[key];
+    if(action){
+      chrome.storage.local.remove(key);
+      if(action.url){
+        if(action.exit){
+          sendTab({ fn: leave_room, args: {jump: action.url} });
+        }
+        else if(action.url.includes('drrr_webpage')){
+          chrome.tabs.create({
+            active: false,
+            pinned: false,
+            url: 'https://drrr.com/'
+          });
+        }
+        else chrome.tabs.update({url: action.url});
+
+        chrome.notifications.getAll((notes)=>{
+          for(const id in notes)
+            if(id.startsWith('https://drrr.com/room/?id='))
+              chrome.notifications.clear(id);
+        });
+      }
+      else if(action.sel){
+        sendTab({ fn: scroll_to, args: {sel: action.sel}}, undefined, undefined, undefined, 'https://drrr.com/lounge/*');
+      }
+      chrome.notifications.clear(notificationId);
+      return;
+    }
+
+    if(notificationId.startsWith('URL')){
+      chrome.tabs.create({url: notificationId.substring(3)});
+      chrome.notifications.clear(notificationId);
+    }
+    else if(notificationId.startsWith('chrome-extension://')){
+      chrome.tabs.create({url: notificationId});
+      chrome.notifications.clear(notificationId);
+    }
+  });
+});
+
+chrome.notifications.onClosed.addListener((notificationId) => {
+  chrome.storage.local.remove(notificationActionKey(notificationId));
+});
 
 var error403 = 0;
 chrome.runtime.onMessage.addListener((req, sender, callback) => {
+
+  if(req && req.__drrrLambdaHeartbeat){
+    callback && callback();
+    return;
+  }
 
   if(req && req.closeTab){
     chrome.tabs.remove(sender.tab.id, function() { });
@@ -158,11 +189,11 @@ chrome.runtime.onMessage.addListener((req, sender, callback) => {
         'cookie':cookies
       }, ()=> callback && callback());
     });
-    return; // callback finished
+    return true; // keep the response channel open for the storage callback
   }
   else if(req && req.setCookies){
     setCookies(req.cookies, callback);
-    return; // callback finished
+    return true; // keep the response channel open for the cookie callbacks
   }
   else if(req && req.notification){
     generate_notification(req);
@@ -174,6 +205,14 @@ chrome.runtime.onMessage.addListener((req, sender, callback) => {
       drrr.getProfile();
       drrr.getLoc();
       drrr.getLounge();
+      if(globalThis.__drrrActiveLambdaTimerOwners
+        && globalThis.__drrrActiveLambdaTimerOwners.size
+        && sender.tab){
+        chrome.tabs.sendMessage(sender.tab.id, {
+          __drrrLambdaTimerHeartbeat: true
+        }, () => void chrome.runtime.lastError);
+      }
+      callback && callback();
       return;
     }
 
@@ -195,21 +234,17 @@ chrome.runtime.onMessage.addListener((req, sender, callback) => {
             handle(req, lconfig, sender, sconfig)
           }
 
-          if(lconfig['select_module'])
-            import(`/module/${module_mapping[lconfig['select_module']]}`).then(
-              (module)=>{
-                module.event_action &&
-                  module.event_action(req, lconfig, sender, event_action);
-              }
-            )
+          if(lconfig['select_module']){
+            const filename = module_mapping[lconfig['select_module']];
+            const module = filename && globalThis.__drrrModules[`module/${filename}`];
+            module && module.event_action &&
+              module.event_action(req, lconfig, sender, event_action);
+          }
           Object.keys(local_functions).forEach((x)=>{
             if(lconfig['switch_' + x]){
-              import(`/setting/plugin/${local_functions[x].module_file}`).then(
-                (module)=>{
-                  module.event_action &&
-                    module.event_action(req, lconfig, sender, event_action);
-                }
-              );
+              const module = globalThis.__drrrModules[`setting/plugin/${local_functions[x].module_file}`];
+              module && module.event_action &&
+                module.event_action(req, lconfig, sender, event_action);
             }
           });
         });
@@ -218,11 +253,11 @@ chrome.runtime.onMessage.addListener((req, sender, callback) => {
   }
   else if(sender.url.match(new RegExp('https://drrr.com/lounge'))){
     if(req && req.start){
-      drrr.getProfile();
       drrr.getLoc();
       drrr.getLounge();
     }
-    getProfile(profile => {
+    drrr.getProfile(profile => {
+      if(!profile) return;
       req.type = event_lounge;
       req.host = false;
       req.user = profile.name;

@@ -1,16 +1,14 @@
-var bkg = chrome.extension.getBackgroundPage;
-
 function open_manual(){
   let language = window.navigator.userLanguage || window.navigator.language;
   if(language == 'zh-CN' || language == 'zh-TW')
-    chrome.tabs.create({url: chrome.extension.getURL('manuals/manual-zh.html')});
+    chrome.tabs.create({url: chrome.runtime.getURL('manuals/manual-zh.html')});
   else
-    chrome.tabs.create({url: chrome.extension.getURL('manuals/manual-en.html')});
+    chrome.tabs.create({url: chrome.runtime.getURL('manuals/manual-en.html')});
 }
 
 function open_background(){
   let type = $("#storage-type").hasClass('fa-hdd-o') ? 'local' : 'sync';
-  chrome.tabs.create({url: chrome.extension.getURL(`setting/${type}/index.html`)});
+  chrome.tabs.create({url: chrome.runtime.getURL(`setting/${type}/index.html`)});
 }
 
 var nodes = undefined;
@@ -72,7 +70,7 @@ function set_hidden_room(){
 }
 
 function open_tripgen(){
-  chrome.tabs.create({url: chrome.extension.getURL('setting/tripcode.html')});
+  chrome.tabs.create({url: chrome.runtime.getURL('setting/tripcode.html')});
 }
 
 function get_music(callback){
@@ -85,7 +83,7 @@ function get_music(callback){
       ajax: (req) =>
       chrome.runtime.sendMessage(
         { type: 'ajax' },
-        () => bkg().ajax(req))
+        () => ajax(req))
     }, source);
     /* retain ? */
     $('#keyword').val('');
@@ -1642,6 +1640,87 @@ function plugin_edit_freeze(bool){
   $('#plugin-code').attr('disabled', !bool);
 }
 
+function plugin_host_pattern(source){
+  try {
+    let url = new URL(source, 'https://drrr.com/');
+    if(!['http:', 'https:'].includes(url.protocol)) return undefined;
+    return `${url.protocol}//${url.hostname}/*`;
+  } catch(error) {
+    return undefined;
+  }
+}
+
+function append_plugin_option(select, name, plugin){
+  const [mode, loc, enable, ctx] = plugin;
+  const option = document.createElement('option');
+  option.style.textAlign = 'center';
+  option.style.textAlignLast = 'center';
+  option.value = name;
+  option.title = mode === 'url' ? ctx : 'code';
+  option.dataset.pluginMode = mode;
+  option.dataset.pluginSource = mode === 'url' ? ctx : '';
+  option.textContent = `${name}/${loc}/${mode}`;
+  select.append(option);
+}
+
+let pluginRuntimeRefreshRequested = false;
+
+function refresh_plugin_runtime_note(){
+  chrome.storage.local.get(['plugins', 'drrrMv3PluginStatus'], config => {
+    const enabled = Object.values(config.plugins || {}).some(plugin => plugin && plugin[2]);
+    const note = $('#plugin-runtime-note');
+    if(!enabled){
+      note.hide();
+      return;
+    }
+
+    const status = config.drrrMv3PluginStatus;
+    const chinese = navigator.language && navigator.language.startsWith('zh');
+    let message = chinese
+      ? 'MV3 插件通过 Chrome User Scripts 在页面主世界运行。Chrome 138+ 请在扩展详情打开“允许用户脚本”；Chrome 120–137 请打开开发者模式。'
+      : 'MV3 plugins run in the page main world through Chrome User Scripts. On Chrome 138+, enable “Allow User Scripts” in this extension’s details. On Chrome 120–137, enable Developer mode.';
+
+    if(status && status.reason === 'user_scripts_disabled'){
+      message = chinese
+        ? '请先在 chrome://extensions 中为此扩展开启“允许用户脚本”（Chrome 138+）；Chrome 120–137 需要开启开发者模式，然后重新打开此弹窗。'
+        : 'Enable User Scripts for this extension in chrome://extensions (Chrome 138+), or enable Developer mode on Chrome 120–137, then reopen this popup.';
+      if(!pluginRuntimeRefreshRequested){
+        pluginRuntimeRefreshRequested = true;
+        chrome.storage.local.set({ drrrPluginRefreshAt: Date.now() });
+      }
+    }
+    else if(status && status.issues && status.issues.some(issue => issue.reason === 'host_permission_required')){
+      message = chinese
+        ? '某些 URL 插件还需要授权其脚本源站；选中对应插件后点击下方授权按钮。'
+        : 'Some URL plugins need permission for their source site. Select one and use the authorization button below.';
+    }
+    else if(status && status.issues && status.issues.length){
+      message = chinese
+        ? '有插件未能加载，请查看扩展程序的 Service Worker 控制台。'
+        : 'Some plugins could not load. Check the extension service worker console for details.';
+    }
+
+    note.text(message).show();
+  });
+}
+
+function refresh_plugin_source_permission(){
+  const option = $('#plugin-select option:selected')[0];
+  const button = $('#authorize-plugin-source');
+  if(!option || option.dataset.pluginMode !== 'url'){
+    button.hide();
+    return;
+  }
+  const origin = plugin_host_pattern(option.dataset.pluginSource || option.title);
+  if(!origin){
+    button.hide();
+    return;
+  }
+  chrome.permissions.contains({origins: [origin]}, allowed => {
+    button.toggle(!allowed);
+  });
+}
+
 function set_builtin_plugins(reset){
   let load = reset ? (set_plugin => {
     chrome.storage.local.get("plugins", config => { set_plugin(config); });
@@ -1659,6 +1738,8 @@ function set_builtin_plugins(reset){
 function init_plugin(config){
   if(config['plugins']){
     $('#plugin-select').empty();
+    $('#plugin-codeblock').hide();
+    $('#plugin-code').val('');
 
     let plugins = Object.keys(config['plugins'])
       .filter(name => name !== 'chatroom_hooks');
@@ -1666,10 +1747,7 @@ function init_plugin(config){
 
     plugins.forEach((name)=>{
       let [mode, loc, enable, ctx] = config['plugins'][name];
-      $('#plugin-select').append(
-        `<option style="text-align:center; text-align-last:center;"
-          title="${mode == 'url' ? ctx : 'code'}"
-          value="${name}">${name}/${loc}/${mode}</option>`);
+      append_plugin_option($('#plugin-select')[0], name, config['plugins'][name]);
       if(mode !== 'url'){
         $('#plugin-code').val(ctx);
         $('#plugin-codeblock').show();
@@ -1689,11 +1767,21 @@ function init_plugin(config){
         $('#plugin-code').val(ctx);
       }
     }
+    else if($('#plugin-select option').length){
+      $('#plugin-select').prop('selectedIndex', 0).change();
+    }
+    refresh_plugin_runtime_note();
+    refresh_plugin_source_permission();
   }
   else set_builtin_plugins(false);
 }
 
 function local_setup(config){
+  chrome.storage.onChanged.addListener((changes, areaName) => {
+    if(areaName === 'local' && changes.drrrMv3PluginStatus)
+      refresh_plugin_runtime_note();
+  });
+
   Object.keys(local_functions).forEach((v)=>{
     $('#local-select').append(`<option style="text-align:center; text-align-last:center;" value="${v}">${v}</option>`);
   })
@@ -1717,14 +1805,14 @@ function local_setup(config){
   });
 
   $("#plug").click(function(){
-    chrome.tabs.create({url: chrome.extension.getURL(`setting/plugin/index.html`)});
+    chrome.tabs.create({url: chrome.runtime.getURL(`setting/plugin/index.html`)});
   });
 
   $("#local-setting-btn").click(function(){
     let sel = $('#local-select')[0];
     let optionSelected = $("option:selected", sel);
     let valueSelected = sel.value;
-    chrome.tabs.create({url: chrome.extension.getURL(`setting/plugin/index.html#menu${Object.keys(local_functions).indexOf(valueSelected)}`)});
+    chrome.tabs.create({url: chrome.runtime.getURL(`setting/plugin/index.html#menu${Object.keys(local_functions).indexOf(valueSelected)}`)});
   });
 
   $('#local-select').on('change', function (e){
@@ -1766,6 +1854,12 @@ function local_setup(config){
       chrome.storage.local.get("plugins", (config)=>{
         config["plugins"] = config["plugins"] || {}
         config["plugins"][valueSelected][3] = url;
+        const option = $('#plugin-select option:selected')[0];
+        if(option){
+          option.title = url;
+          option.dataset.pluginSource = url;
+          refresh_plugin_source_permission();
+        }
         chrome.storage.local.set({ "plugins": config["plugins"] })
       });
     }
@@ -1786,16 +1880,18 @@ function local_setup(config){
 
     let $stored = $('#plugin-select');
     let valueSelected = $stored.val();
+    let name = valueSelected;
+    let loc;
+    let $saveButton = $(this);
 
     if(!valueSelected){
-      let name = prompt(chrome.i18n.getMessage("rename_as"),
-        name ? name : chrome.i18n.getMessage("plugin"));
+      name = prompt(chrome.i18n.getMessage("rename_as"), chrome.i18n.getMessage("plugin"));
 
       if(name === null) return plugin_edit_freeze(false);
 
       name = name ? name : chrome.i18n.getMessage("plugin");
 
-      let loc = prompt("location (room/lounge/login)", "room");
+      loc = prompt("location (room/lounge/login)", "room");
 
       if(loc === null) return plugin_edit_freeze(false);
     }
@@ -1807,8 +1903,7 @@ function local_setup(config){
       if(!config["plugins"][name]){
         config["plugins"][name] = ['code', loc, true, $('#plugin-code').val()];
         let idx = $('option', $stored).length;
-        $stored.append(`<option style="text-align:center; text-align-last:center;"
-                                value="${name}" title="code">${name}/${loc}/code</option>`);
+        append_plugin_option($stored[0], name, config["plugins"][name]);
         $stored[0].selectedIndex = idx;
       }
       else{
@@ -1816,13 +1911,12 @@ function local_setup(config){
       }
       chrome.storage.local.set({ "plugins": config["plugins"] })
       $stored.change();
-      $(this).hide();
+      $saveButton.hide();
       plugin_edit_freeze(false)
     });
   });
 
   $('#add_plugin').on('click', function(){
-    let error = () => alert(", you refer the 'goto store button'");
     let ctx = prompt('input the plugin source code URL (empty for writing source):');
     if(ctx === null) return;
 
@@ -1864,14 +1958,13 @@ plugin_hooks.push(plugin_logger);
       }
 
       config["plugins"][name] = [mode, loc, true, ctx];
-      chrome.storage.local.set({ "plugins": config["plugins"] })
+      chrome.storage.local.set({ "plugins": config["plugins"] }, () => {
+        const existing = [...$stored[0].options].find(option => option.value === name);
+        if(existing) existing.remove();
+        append_plugin_option($stored[0], name, config["plugins"][name]);
+        $stored.val(name).change();
+      });
     });
-
-    let idx = $('option', $stored).length;
-    $stored.append(`<option style="text-align:center; text-align-last:center;"
-      value="${name}" title="${mode == 'url' ? ctx : 'code'}">${name}/${loc}/${mode}</option>`);
-    $stored[0].selectedIndex = idx;
-    $stored.change();
   });
 
   $('#del_plugin').on('click', function(){
@@ -1915,7 +2008,24 @@ plugin_hooks.push(plugin_logger);
           $('#plugin-code').val('');
           $('#plugin-switch').attr('class', `fa fa-toggle-off`);
         }
+        refresh_plugin_runtime_note();
+        refresh_plugin_source_permission();
       });
+    });
+  });
+
+  $('#authorize-plugin-source').on('click', function(){
+    const option = $('#plugin-select option:selected')[0];
+    if(!option || option.dataset.pluginMode !== 'url') return;
+    const origin = plugin_host_pattern(option.dataset.pluginSource || option.title);
+    if(!origin) return alert('The plugin source must use an HTTP or HTTPS URL.');
+
+    const button = $(this);
+    chrome.permissions.request({origins: [origin]}, granted => {
+      if(!granted) return;
+      chrome.storage.local.set({ drrrPluginRefreshAt: Date.now() });
+      button.hide();
+      refresh_plugin_runtime_note();
     });
   });
 
@@ -1927,7 +2037,9 @@ plugin_hooks.push(plugin_logger);
     if(!valueSelected) return;
     chrome.storage.local.get("plugins", (config)=>{
       config["plugins"][valueSelected][2] = v;
-      chrome.storage.local.set({ "plugins": config["plugins"] })
+      chrome.storage.local.set({ "plugins": config["plugins"] }, () => {
+        refresh_plugin_runtime_note();
+      })
     });
     $('#plugin-switch').attr('class', `fa fa-toggle-${v ? 'on' : 'off'}`);
   });
@@ -1996,7 +2108,7 @@ function header_setup(config){
   $("#manual").click(open_manual);
   $("#cog").click(open_background);
   $("#program").click(function(){
-    chrome.tabs.create({url: chrome.extension.getURL('setting/script/index.html')});
+    chrome.tabs.create({url: chrome.runtime.getURL('setting/script/index.html')});
   });
   $("#video-guide").click(function(){
     chrome.tabs.create({url: 'https://www.youtube.com/playlist?list=PLaNluYBUsQrKe_faeHaFsKo9SkQzkQFOk'});
@@ -2072,7 +2184,7 @@ $(document).ready(function(){
 
   /* ensure activate the background page */
   chrome.runtime.sendMessage({ type: 'popup' },
-    () => bkg().make_switch_panel($, '#switch_panel'));
+    () => make_switch_panel($, '#switch_panel'));
 
   chrome.storage.sync.get((config)=>{
     if(config['lockLevel'] && config['lockLevel'] != 0){
