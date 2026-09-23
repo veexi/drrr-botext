@@ -5,8 +5,12 @@
     "description": "chatbot extension for drrr.com",
     "short_name": "drrrbot",
     "version": "1.843",
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "drrr-botext-zen@veexi.github.io"
+        }
+    },
     "default_locale": "en",
-    "current_locale": "zh",
     "browser_action": {
         "default_icon": "icon.png",
         "default_popup": "/popup/index.html"
@@ -73,5 +77,5 @@
          "setting/*.mjs"
     ],
     "content_security_policy": "script-src 'self' https://static.line-scdn.net; object-src 'self'",
-    "incognito": "split"
+    "incognito": "not_allowed"
 }

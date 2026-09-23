@@ -6,6 +6,10 @@
 
 由於是 Chrome 插件，所以請使用 Chrome 瀏覽器，並至 [Google 線上應用程式商店](https://chrome.google.com/webstore/detail/drrr-chatbot-extension/fkmpnkcjocenkliehpdhlfbmdmdnokgm) 安裝。
 
+Zen 瀏覽器（Firefox 核心）：
+
+`zen-firefox` 分支提供 Zen 的 Firefox 核心開發版。安裝方式請看 [ZEN-FIREFOX.md](ZEN-FIREFOX.md)。透過 `about:debugging` 載入屬於臨時安裝，重新啟動 Zen 後需要再次載入。
+
 另外如果是用 Opera 的話，可以嘗試 Opera 這款 [Install Chrome Extensions](https://addons.opera.com/zh-tw/extensions/details/install-chrome-extensions/) 裝裝看。
 
 手機端：
@@ -17,10 +21,6 @@ Kiwi browser 也可以運行此插件，不過因為某些未知的 bug，我做
 背景版本：
 
 [背景版本](https://chrome.google.com/webstore/detail/drrr-chatbot-extension-ba/iafmncflgcckjejinbaneekanabjnodm) 可以讓你在網站上更換圖示（例如機器人板手）。不過他必須常駐在背景執行，這可能會消耗更多的資源。
-
-即將上架：
-
-火狐瀏覽器插件還在審核，他之後應該可以在 Android 和電腦上運行。
 
 ## 使用說明
 
