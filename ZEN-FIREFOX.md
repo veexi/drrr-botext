@@ -1,6 +1,19 @@
 # Zen Browser (Firefox) build
 
-This branch, `zen-firefox`, is based on `dev` and keeps the existing Manifest V2 background page and room content scripts. The manifest includes a fixed Gecko add-on ID so Firefox storage APIs such as `storage.sync` can keep a stable extension identity.
+## Project overview
+
+DRRR Chat Bot Extension enhances the `drrr.com` home, lounge, and room pages with chat helpers, configurable automation, user scripts and plugins, music controls, notifications, and optional peer-to-peer room features.
+
+This branch, `zen-firefox`, is based on `dev` and adapts the existing extension for Zen Browser, which uses Firefox's WebExtension APIs. It keeps the Manifest V2 background page and room content scripts so the legacy runtime and its features can be reused. It is separate from the Chrome Manifest V3 work in `chrome-v3`.
+
+## Changes from `dev`
+
+- Added a fixed Gecko add-on ID in `manifest.json`, giving Firefox APIs such as `storage.sync` a stable extension identity.
+- Removed the unused, nonstandard `current_locale` field.
+- Changed `incognito` from Chrome's unsupported `split` mode to `not_allowed`. This removes Firefox's manifest warning and retains its previous effective behavior; private windows remain unsupported, while regular windows are unaffected.
+- Added this installation and compatibility guide and linked it from the English and Chinese READMEs.
+
+The room, lounge, home-page, popup, settings, script, music, and peer feature code is carried forward from `dev`; this branch does not rewrite the background runtime as a service worker.
 
 ## Load it in Zen for development
 
@@ -19,4 +32,4 @@ For a normal persistent installation, Mozilla must sign the packaged add-on (thr
 - Private windows are disabled in this Firefox build, matching Firefox's prior fallback behavior for the unsupported `split` mode; normal windows are unaffected.
 - Existing Chrome-style callback APIs are retained; Firefox supports them for compatible WebExtension APIs.
 - Some optional functions call external services and may require their existing permissions or account configuration.
-- This branch has not yet been exercised in a live Zen room. Report any console error from the room page or extension background page so the failing feature can be fixed without changing the `chrome-v3` branch.
+- Current user feedback is that Firefox/Zen works. Optional integrations have not been individually regression-checked; if one fails, inspect the room page or extension background console without changing the `chrome-v3` branch.
