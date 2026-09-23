@@ -8,6 +8,10 @@ It's a chrome extension, so please use the google chrome browser, and goto [Goog
 
 If your browser is Opera, you can try the [Opera Extension](https://addons.opera.com/zh-tw/extensions/details/install-chrome-extensions/) to **Install Chrome Extensions**.
 
+#### Chrome Manifest V3 development branch:
+
+The new `chrome-v3` branch updates this extension for Chrome's Manifest V3 platform. It is separate from the currently published store build. See [CHROME-V3.md](CHROME-V3.md) for the project overview, migration notes, and local installation steps.
+
 #### Phone:
 
 The extension on Chrome App is not available, but you can use Yandex browser([Android](https://play.google.com/store/apps/details?id=ru.yandex.searchplugin&hl=en_US), Yandex on iOS doesn't provide extension), the App uses chrome kernel, so you can goto [Google WebStore](https://chrome.google.com/webstore/detail/drrr-chatbot-extension/fkmpnkcjocenkliehpdhlfbmdmdnokgm) to install the chatbot extension.
@@ -17,10 +21,6 @@ Kiwi browser can also run the extenson, but for some unknown bugs, I make a cust
 #### Background:
 
 [The background version](https://chrome.google.com/webstore/detail/drrr-chatbot-extension-ba/iafmncflgcckjejinbaneekanabjnodm) let you change the icon (i.e. Bot cog) on the site. But it may run in the background, which means it would cost more resources.
-
-#### Incoming:
-
-Firefox add-ons is still under reviewing, and it may be both available on PC and Android.
 
 ## Manual
 
