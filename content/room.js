@@ -104,7 +104,7 @@ function MsgDOM2EventObj(msg, info){
   var type = '', user = '', text = '', url = '';
   try{
     //console.log("msg is", msg);
-    if(msg.classList.contains("system")){
+    if(msg.classList.contains("system") && !msg.querySelector('.bubble')){
       if(msg.classList.contains("me")){
         type = event_me;
         user = $(msg).find('.name').text();
@@ -152,7 +152,9 @@ function MsgDOM2EventObj(msg, info){
       }
     }
     else{
-      text = $(msg).find($('p')).clone().children().remove().end().text();
+      var bubble = msg.querySelector('.bubble');
+      var messageText = bubble ? (bubble.querySelector('p') || bubble) : msg.querySelector('p');
+      text = messageText ? messageText.textContent : '';
       var ue = $(msg).find($('.bubble p a'));
       if(ue.length) url = ue.attr('href');
       ue = $(msg).find($('img'));
@@ -579,12 +581,21 @@ $(document).ready(function(){
           mutations.forEach(function(mutation) {
             var nodes = Array.prototype.slice.call(mutation.addedNodes);
             nodes.forEach(function(node) {
-              if(node.parentElement.id == 'talks'){
-                let a = $(node).find('a');
-                if(a.length) a.attr('href', $('<textarea />').html(a.attr('href')).text())
-                handle_talks(node);
-                hide_annoying(node);
+              if(!node || node.nodeType !== 1) return;
+              var talkNodes = [];
+              if(node.matches('.talk')) talkNodes.push(node);
+              node.querySelectorAll('.talk').forEach(function(talk){
+                talkNodes.push(talk);
+              });
+              if(!talkNodes.length && node.parentElement && node.parentElement.id == 'talks'){
+                talkNodes.push(node);
               }
+              talkNodes.forEach(function(talk){
+                let a = $(talk).find('a');
+                if(a.length) a.attr('href', $('<textarea />').html(a.attr('href')).text())
+                handle_talks(talk);
+                hide_annoying(talk);
+              });
             });
           });
         });
