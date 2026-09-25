@@ -155,6 +155,12 @@ function load_mirrors(mirror, mirrors){
   load_index(mirrors[mirror].index)
 }
 
+function mirror_file_url(mirror_name, file_path){
+  var source = mirrors[mirror_name];
+  var branch = source.branch || 'main';
+  return `https://${source.loc}/bs-pkgs/raw/${branch}/${file_path}`;
+}
+
 function load_modules(modules){
   $('#module').empty();
   if(modules) for(s of modules)
@@ -184,7 +190,7 @@ function parse_index(raw_index){
 
 function update_index(mirror, mirrors){
   if(mirror != 'Local')
-    fetch(`https://${mirrors[mirror].loc}/bs-pkgs/raw/main/index.json`)
+    fetch(mirror_file_url(mirror, 'index.json'))
       .then(response => response.json())
       .catch(error => {
         if(mirror != 'Local')
@@ -214,7 +220,7 @@ function install_module(){
   c = $('#category').val();
   m = $('#module').val();
   if(M && c && m){
-    fetch(`https://${mirrors[M].loc}/bs-pkgs/raw/main/${c}/${m}`)
+    fetch(mirror_file_url(M, `${c}/${m}`))
       .then(response => response.text())
       .catch(error => {
         $.notify("cannot fetch module", "error");
@@ -244,7 +250,7 @@ function load_module(){
     globalThis.editor.setValue(local_modules[`${c}/${m}`].code)
   }
   else if(M && c && m){
-    fetch(`https://${mirrors[M].loc}/bs-pkgs/raw/main/${c}/${m}`)
+    fetch(mirror_file_url(M, `${c}/${m}`))
       .then(response => response.text())
       .catch(error => {
         $.notify("cannot fetch module", "error")
@@ -479,7 +485,8 @@ function set_modules(config){
         index: {}
       },
       'GitHub': {
-        loc: 'github.com/veexi'
+        loc: 'github.com/veexi',
+        branch: 'master'
       },
       'Gitee': {
         loc: 'gitee.com/DrrrChatbots'
@@ -490,6 +497,13 @@ function set_modules(config){
   else if(mirrors.GitHub && mirrors.GitHub.loc === 'github.com/DrrrChatbots'){
     // Migrate only the old built-in default; preserve user-configured mirrors.
     mirrors.GitHub.loc = 'github.com/veexi';
+    mirrors.GitHub.branch = 'master';
+    mirrors_changed = true;
+  }
+  else if(mirrors.GitHub && mirrors.GitHub.loc === 'github.com/veexi'
+    && !mirrors.GitHub.branch){
+    // Complete migration from the earlier veexi mirror setting.
+    mirrors.GitHub.branch = 'master';
     mirrors_changed = true;
   }
 
