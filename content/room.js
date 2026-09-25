@@ -151,7 +151,11 @@ function MsgDOM2EventObj(msg, info){
       }
       else{
         user = $(msg).find('.name span').text();
-        type = msg.classList.contains("secret") ? event_dm : event_msg;
+        if(msg.classList.contains("secret")) type = event_dm;
+        else if(msg.classList.contains("low")
+          || msg.classList.contains("loudness-3")
+          || msg.classList.contains("whisper")) type = event_low;
+        else type = event_msg;
       }
       if(type == event_dm || type == event_dmto){
         //if(user == roomProfile().name) return;
