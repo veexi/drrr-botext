@@ -408,9 +408,9 @@ function module_button_display(){
 }
 
 function add_mirror(alias, repo){
-  // 'GitHub': { loc: 'github.com/DrrrChatbots' }
+  // 'GitHub': { loc: 'github.com/veexi' }
   if(!alias || !repo){
-    input = prompt("ex: GitHub:github.com/DrrrChatbots");
+    input = prompt("ex: GitHub:github.com/veexi");
     if(!input) return;
     [alias, repo] = input.split(":");
     alias = alias.trim();
@@ -470,6 +470,7 @@ function set_modules(config){
   })
 
   mirrors = config['bs-mirrors'];
+  var mirrors_changed = false;
 
   if(!mirrors){
     mirrors = {
@@ -478,12 +479,21 @@ function set_modules(config){
         index: {}
       },
       'GitHub': {
-        loc: 'github.com/DrrrChatbots'
+        loc: 'github.com/veexi'
       },
       'Gitee': {
         loc: 'gitee.com/DrrrChatbots'
       }
     }
+    mirrors_changed = true;
+  }
+  else if(mirrors.GitHub && mirrors.GitHub.loc === 'github.com/DrrrChatbots'){
+    // Migrate only the old built-in default; preserve user-configured mirrors.
+    mirrors.GitHub.loc = 'github.com/veexi';
+    mirrors_changed = true;
+  }
+
+  if(mirrors_changed){
     chrome.storage.local.set({
       'bs-mirrors': mirrors
     });
