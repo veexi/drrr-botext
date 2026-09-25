@@ -179,6 +179,17 @@ var dmMember = function(args, callback, passOn){
   */
 }
 
+var lowVoice = function(args){
+  zh_conv((cvt)=>{
+    var message = args.msg.trim().length ? cvt(args.msg) : '⠀';
+    var cmd = {"message": message, "loudness": 3};
+    if(args.url) cmd['url'] = args.url;
+    ctrlRoom(cmd);
+    if(typeof draw_message === 'function')
+      draw_message(message, undefined, true);
+  });
+}
+
 var handOverRoom = function(args){
   findUser(args.user, (u)=>{
     ctrlRoom({'new_host': u.id});
@@ -581,6 +592,7 @@ function fetchRoom(args, callback) {
 var methods = {}
 methods[post_message] = postMessage;
 methods[publish_message] = publishMessage;
+methods[lowvoice_message] = lowVoice;
 methods[switch_me] = switchMe;
 methods[on_dm_member] = onDmMember;
 methods[off_dm_member] = offDmMember;

@@ -41,9 +41,7 @@ function fcc(e, t, n, i) {
       $(a).append(c)
     }
   }
-  var u = $("<dd />").append($("<div />", {
-    class: "bubble"
-  }).append(a)),
+  var u = $("<dd />"),
     d = $("<dt />", {
       class: "dropdown user"
     }).data(t).data(i).append($("<div />", {
@@ -58,6 +56,10 @@ function fcc(e, t, n, i) {
       class: "dropdown-menu",
       role: "menu"
     }));
+  if((n && n.type === "low") || (n && n.loudness === 3))
+    u.append(a);
+  else
+    u.append($("<div />", { class: "bubble" }).append(a));
   i.secret && roomProfile().id == t.id && u.append($("<div />", {
     class: "secret-to-whom"
   }).addClass(!1 === i.to.alive ? "dead" : "").append($("<span />", {
@@ -79,6 +81,8 @@ function fcc(e, t, n, i) {
     class: "talk",
     id: e
   }).append(d).append(u).addClass(t.icon);
+  if(n && n.loudness) m.addClass("loudness-" + n.loudness);
+  if((n && n.type === "low") || (n && n.loudness === 3)) m.addClass("low");
   return i.secret && m.addClass("secret"), t.admin && m.addClass("is-mod"), t.hasOwnProperty("player") && m.addClass(t.player ? "player" : "non-player"), t.hasOwnProperty("alive") && m.addClass(t.alive ? "alive" : "dead"), m
 }
 
@@ -92,8 +96,12 @@ function writeMessage(e) {
     e.secret && (n.to = e.to);
     var i = fcc(e.id, t, {
       message: e.message,
-      url: e.url
+      url: e.url,
+      loudness: e.loudness,
+      type: e.type
     }, n);
+    if(e.type) i.addClass(e.type);
+    if(e.loudness === 3 || e.type === "low") i.addClass("low");
     return e.element = i, i
   }
 }
@@ -147,7 +155,7 @@ function writeMe(e){
   //return _formBasicNode(e, !0), _appendNodeContent(e, $("<span />").append(_formIconNode(e.from)).append(_formUserNode(e.from)), escapeHtml(e.content));
 }
 
-function draw_message(msg, to){
+function draw_message(msg, to, is_low){
   var the_message = {
     type: "message",
     from: roomProfile(),
@@ -155,9 +163,14 @@ function draw_message(msg, to){
     is_me: !0,
     message: msg,
   };
+  if(is_low){
+    the_message.type = "low";
+    the_message.loudness = 3;
+  }
   if(to) the_message.secret = true, the_message.to = to;
   the_message.element = writeMessage(the_message, roomProfile());
-  the_message.element.find(".bubble").prepend('<div class="tail-wrap center" style="background-size: 65px;"><div class="tail-mask"></div></div>');
+  if(!is_low)
+    the_message.element.find(".bubble").prepend('<div class="tail-wrap center" style="background-size: 65px;"><div class="tail-mask"></div></div>');
   console.log(the_message.element)
   $('#talks').prepend(the_message.element)
 }

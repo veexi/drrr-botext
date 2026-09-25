@@ -108,6 +108,14 @@ drrr_builtins = {
     drrr._prev_say_args = ['print', arguments];
     drrr_send(msg, url);
   },
+  'low': function(msg, url){
+    drrr._prev_say_args = ['low', arguments];
+    sendTab({ fn: lowvoice_message, args: { msg: msg, url: url } });
+  },
+  'low_voice': function(msg, url){
+    drrr._prev_say_args = ['low', arguments];
+    sendTab({ fn: lowvoice_message, args: { msg: msg, url: url } });
+  },
   'dm': function(user, msg, url){
     drrr._prev_say_args = ['dm', arguments];
     drrr_send(msg, url, user);
