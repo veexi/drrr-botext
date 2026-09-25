@@ -577,33 +577,49 @@ $(document).ready(function(){
       }
 
       function listenTalks() {
+        var lastTalkPayload = new WeakMap();
         var observer = new MutationObserver(function(mutations) {
-          mutations.forEach(function(mutation) {
-            var nodes = Array.prototype.slice.call(mutation.addedNodes);
-            nodes.forEach(function(node) {
-              if(!node || node.nodeType !== 1) return;
-              var talkNodes = [];
-              if(node.matches('.talk')) talkNodes.push(node);
-              node.querySelectorAll('.talk').forEach(function(talk){
-                talkNodes.push(talk);
-              });
-              if(!talkNodes.length && node.parentElement && node.parentElement.id == 'talks'){
-                talkNodes.push(node);
-              }
-              talkNodes.forEach(function(talk){
-                let a = $(talk).find('a');
-                if(a.length) a.attr('href', $('<textarea />').html(a.attr('href')).text())
-                handle_talks(talk);
-                hide_annoying(talk);
-              });
+          var talkNodes = new Set();
+
+          function collectTalks(node){
+            if(!node) return;
+            var element = node.nodeType === 1 ? node : node.parentElement;
+            if(!element) return;
+
+            var talk = element.matches('.talk') ? element : element.closest('.talk');
+            if(talk) talkNodes.add(talk);
+            element.querySelectorAll('.talk').forEach(function(childTalk){
+              talkNodes.add(childTalk);
             });
+            if(!talk && !element.querySelector('.talk')
+              && element.parentElement && element.parentElement.id == 'talks'){
+              talkNodes.add(element);
+            }
+          }
+
+          mutations.forEach(function(mutation) {
+            if(mutation.type === 'characterData'){
+              collectTalks(mutation.target);
+              return;
+            }
+            Array.prototype.slice.call(mutation.addedNodes).forEach(collectTalks);
+          });
+
+          talkNodes.forEach(function(talk){
+            var payload = talk.className + '\0' + talk.textContent;
+            if(lastTalkPayload.get(talk) === payload) return;
+            lastTalkPayload.set(talk, payload);
+            let a = $(talk).find('a');
+            if(a.length) a.attr('href', $('<textarea />').html(a.attr('href')).text())
+            handle_talks(talk);
+            hide_annoying(talk);
           });
         });
         observer.observe(document.querySelector("#talks"), {
           childList: true,
           subtree: true,
           attributes: false,
-          characterData: false,
+          characterData: true,
         });
 
         $('#talks').children().get().forEach(e => {
