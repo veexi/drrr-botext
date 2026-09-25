@@ -501,7 +501,6 @@ conditions: {"INITIAL":{"rules":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,
 return lexer;
 })();
 globalThis.LambdaLexer = llexer;
-#!/bin/node
 // TODO: pattern matching, computed attribute
 // TODO: add state, stmt parsing only function
 
@@ -1855,7 +1854,6 @@ function removeTok(obj) {
 
 // TODO: support code generation to js
 
-#!/bin/node
 
 // TODO: add stack trace on machine exception
 // TODO complete break, continue, return
@@ -1874,7 +1872,7 @@ function censor(censor){
   }
 }
 
-const DUMP = false;
+const RUNNER_DUMP = false;
 const NONE = undefined;
 
 function MachineException(type, value,

@@ -4,6 +4,10 @@ import { fileURLToPath } from 'node:url';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
 
+function stripShebang(source) {
+  return source.replace(/^#![^\r\n]*(?:\r?\n|$)/, '');
+}
+
 async function jsFiles(directory) {
   const result = [];
   for (const entry of await readdir(join(root, directory), { withFileTypes: true })) {
@@ -46,10 +50,10 @@ async function buildModuleRegistry() {
 }
 
 async function buildLambdaRuntime() {
-  let lexer = await readFile(join(root, 'lib/lambda-lexer.mjs'), 'utf8');
+  let lexer = stripShebang(await readFile(join(root, 'lib/lambda-lexer.mjs'), 'utf8'));
   lexer = lexer.replace(/\nexport\s+\{\s*llexer\s+as\s+lexer\s*\}\s*$/, '\nglobalThis.LambdaLexer = llexer;');
 
-  let parser = await readFile(join(root, 'lib/parse-lambda.mjs'), 'utf8');
+  let parser = stripShebang(await readFile(join(root, 'lib/parse-lambda.mjs'), 'utf8'));
   parser = parser.replace(/^import\s*\{[\s\S]*?\}\s*from\s*["']\.\/lambda-lexer\.mjs["'];\s*/m, '');
   const parserMain = parser.indexOf('\nfunction main(){');
   const parserRemoveTok = parser.indexOf('\nfunction removeTok', parserMain);
@@ -57,9 +61,10 @@ async function buildLambdaRuntime() {
   parser = parser.slice(0, parserMain) + parser.slice(parserRemoveTok);
   parser = parser.replace(/\nexport\s+\{\s*Parser[\s\S]*?\};/, '\n');
 
-  let runner = await readFile(join(root, 'lib/run-lambda.mjs'), 'utf8');
+  let runner = stripShebang(await readFile(join(root, 'lib/run-lambda.mjs'), 'utf8'));
   runner = runner.replace(/^import\s*\{[\s\S]*?\}\s*from\s*["']\.\/lambda-lexer\.mjs["'];\s*/m, '');
   runner = runner.replace(/^import\s*\{[\s\S]*?\}\s*from\s*["']\.\/parse-lambda\.mjs["'];\s*/m, '');
+  runner = runner.replace(/\bDUMP\b/g, 'RUNNER_DUMP');
   const runnerMain = runner.indexOf('\nfunction main(){');
   const runnerExport = runner.indexOf('\nexport { Machine', runnerMain);
   if (runnerMain < 0 || runnerExport < 0) throw new Error('Could not locate lambda runner CLI block');
