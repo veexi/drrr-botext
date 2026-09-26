@@ -2,6 +2,12 @@ prevRoomInfo = undefined;
 roomInfo = undefined;
 let lambdaTimerHeartbeatId;
 
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName === "sync" && Object.prototype.hasOwnProperty.call(changes, SWITCH_KEEPER)) {
+    setRoomRecovery({state: changes[SWITCH_KEEPER].newValue});
+  }
+});
+
 function setLambdaTimerHeartbeat(active){
   if(active && !lambdaTimerHeartbeatId){
     lambdaTimerHeartbeatId = setInterval(() => {
@@ -540,11 +546,12 @@ $(document).ready(function(){
   }
 
   chrome.storage.sync.get(
-    [SWITCH_ME, 'leaveRoom', 'jumpToRoom', 'profile'
+    [SWITCH_ME, SWITCH_KEEPER, 'leaveRoom', 'jumpToRoom', 'profile'
     , '#bg-url-input', '#name-color-input', '#name-bg-color-input'],
     (config) => {
 
       chrome.storage.sync.set({'profile': roomProfile()});
+      setRoomRecovery({state: config[SWITCH_KEEPER]});
 
       if(!isLockedUser){
 
@@ -576,7 +583,16 @@ $(document).ready(function(){
         }
       }
 
-      function listenTalks() {
+      function listenTalks(attempt) {
+        var talks = document.querySelector("#talks");
+        if(!talks){
+          if((attempt || 0) < 10){
+            setTimeout(()=>listenTalks((attempt || 0) + 1), 500);
+          }
+          else console.warn("[drrr-botext] Room talk list was not found; skipping its observer.");
+          return;
+        }
+
         var lastTalkPayload = new WeakMap();
         var observer = new MutationObserver(function(mutations) {
           var talkNodes = new Set();
@@ -615,21 +631,21 @@ $(document).ready(function(){
             hide_annoying(talk);
           });
         });
-        observer.observe(document.querySelector("#talks"), {
+        observer.observe(talks, {
           childList: true,
           subtree: true,
           attributes: false,
           characterData: true,
         });
 
-        $('#talks').children().get().forEach(e => {
+        $(talks).children().get().forEach(e => {
           let a = $(e).find('a');
           if(a.length)
             a.attr('href', $('<textarea />').html(a.attr('href')).text())
         })
       }
       // wait 3 sec to init the room talks
-      setTimeout(listenTalks, 1500);
+      setTimeout(()=>listenTalks(0), 1500);
 
       wrap_post_form();
 

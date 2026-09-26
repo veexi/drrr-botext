@@ -64,7 +64,7 @@ Kiwi browser can also run the extenson, but for some unknown bugs, I make a cust
 - EventAction <i class="glyphicon glyphicon-cog"></i>
   When the event occurs, perform the set action
 - RoomKeeper
-  Automatically send messages to yourself to prevent the room from disappearing
+  Automatically reload the room after detecting a lost connection; it no longer sends messages to yourself
 - TgBotForwarder (TgBotLogger) <i class="glyphicon glyphicon-cog"></i>
   Record chat messages via Telegram Bot
 - RoomStatus (RoomNotification)

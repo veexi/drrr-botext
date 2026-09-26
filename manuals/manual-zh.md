@@ -64,7 +64,7 @@ Kiwi browser 也可以運行此插件，不過因為某些未知的 bug，我做
 - EventAction <i class="glyphicon glyphicon-cog"></i>
   當事件發生，執行設定的動作
 - RoomKeeper
-  自動發訊息給自己，防止房間消失
+  偵測到連線中斷後自動重載房間，不再透過私信自己保活
 - TgBotForwarder (TgBotLogger) <i class="glyphicon glyphicon-cog"></i>
   將聊天訊息透過 Telegram Bot 紀錄下來
 - RoomStatus (RoomNotification)

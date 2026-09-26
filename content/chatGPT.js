@@ -85,15 +85,23 @@ function parseProse(p){
 }
 
 function monitChat(callback){
-  let dom = document.getElementsByTagName('main')[0]
-    .firstElementChild.firstElementChild.firstElementChild.firstElementChild
+  let dom = document.querySelector('main');
+  for(let i = 0; dom && i < 4; i++) dom = dom.firstElementChild;
+  if(!dom){
+    console.warn("[drrr-botext] ChatGPT response container was not found; skipping its observer.");
+    return;
+  }
+
   var observer = new MutationObserver(function(mutations) {
     mutations.forEach(function(mutation) {
       var nodes = Array.prototype.slice.call(mutation.addedNodes);
       nodes.forEach(function(node) {
-        if( node.parentNode.classList[0] == dom.classList[0] ) {
+        if(node.nodeType !== Node.ELEMENT_NODE) return;
+        if(node.parentNode && node.parentNode.classList &&
+           node.parentNode.classList[0] === dom.classList[0]){
           // result-streaming
-          if(node.querySelectorAll('svg')?.[0].classList.contains('w-6')){
+          var resultIcon = node.querySelector('svg');
+          if(resultIcon && resultIcon.classList.contains('w-6')){
             let prosesResp = [];
             for(let prose of node.querySelectorAll('.prose')){
               if(prose.classList.contains('result-streaming')){
@@ -115,8 +123,8 @@ function monitChat(callback){
             callback(prosesResp.join('\n'));
             lock = false;
           }
-        };
-        if(node.parentElement.id == 'talks'){
+        }
+        if(node.parentElement && node.parentElement.id == 'talks'){
           let a = $(node).find('a');
           if(a.length) a.attr('href', $('<textarea />').html(a.attr('href')).text())
           handle_talks(node);

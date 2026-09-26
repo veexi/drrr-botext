@@ -18,6 +18,12 @@
     "content_scripts": [
         {
             "matches": ["https://drrr.com/room/*"],
+            "run_at": "document_start",
+            "world": "MAIN",
+            "js": ["/content/connection-recovery.js"]
+        },
+        {
+            "matches": ["https://drrr.com/room/*"],
             "css": ["/content/index.css"],
             "run_at": "document_start",
             "js": ["/js/jquery-3.4.1.min.js"

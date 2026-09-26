@@ -14,6 +14,7 @@ This document describes the `chrome-v3` development branch. It is based on `dev`
 - Added `scripts/build-mv3-worker.mjs`. It generates `background/worker-lambda.js` and `background/worker-modules.js` from the existing Lambda, module, and plugin sources so the service worker can load them as classic scripts.
 - Added a room-tab heartbeat for active Lambda timers, since MV3 service workers may otherwise become idle while timer callbacks are pending.
 - Updated popup, settings, and page messaging paths for the MV3 permission model and background runtime. The existing room, lounge, home-page, script, music, and peer features remain in the branch.
+- Reused the existing RoomKeeper switch (`switch_keeper`) to enable room connection recovery. It waits for drrr's built-in Socket.IO reconnection, reloads the room after a sustained disconnect, retries five times at five-second intervals, then waits 60 seconds before continuing. It no longer sends keepalive messages to yourself.
 - Kept the Live2D page's Asteroids easter egg as a local extension asset.
 
 ## Load the development build

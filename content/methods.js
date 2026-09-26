@@ -308,22 +308,12 @@ var leaveRoom = function(args, callback, force){
   );
 }
 
-var keepH = undefined;
-var keepRoom = function(args){
-  uid = roomProfile().id;
-  var keep = function(){
-    //$('#to-input').val(uid);
-    dmMember({msg:'keep', user: roomProfile().name}, undefined, true);
-  }
-  if(args.state){
-    keep();
-    keepH = setInterval(keep, 600000);
-  }
-  else{
-    clearInterval(keepH);
-    //$('#to-input').val(uid);
-    dmMember({msg:'unkeep', user: roomProfile().name}, undefined, true);
-  }
+function setRoomRecovery(args){
+  window.postMessage({
+    source: "drrr-botext-extension",
+    type: "room-recovery-setting",
+    enabled: Boolean(args && args.state)
+  }, window.location.origin);
 }
 
 var cacheProfile = function(args, callback){
@@ -611,7 +601,6 @@ methods[alert_user] = alertUser;
 methods[bind_alarms] = bindAlarms;
 methods[rebind_alarms] = rebindAlarms;
 methods[clear_alarms] = clearAlarms;
-methods[keep_room] = keepRoom;
 methods[bg_effect] = bgEffect;
 methods[change_bg_img_url] = changeBgImageURL;
 methods[change_name_clr] = changeNameClr;

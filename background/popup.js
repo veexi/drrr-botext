@@ -758,34 +758,12 @@ var RoomKeeperH = new Handler("RoomKeeper",
   [
     new pack_ui({}, '', [
       new switch_ui({
-        'switchChange.bootstrapSwitch': sync_switch_change((state, event) =>
-          {
-            sendTab({
-              fn: keep_room,
-              args: { state: state  }
-            });
-          })
+        'switchChange.bootstrapSwitch': sync_switch_change()
       }, '', [], {id: SWITCH_KEEPER}),
       new label_ui({}, 'RoomKeeper')
-    ], {title: 'keep the room automatically'})
+    ], {title: 'automatically recover the room after its connection drops'})
   ],
-  {
-    sync: {
-      [event_newtab]: {
-        precond: (config, uis) => config[SWITCH_KEEPER],
-        onevent: (req, config, uis) => {
-          roomTabs((tabs)=>{
-            if(tabs.length == 1){
-              sendTab({
-                fn: keep_room,
-                args: { state: true  }
-              });
-            }
-          })
-        }
-      }
-    }
-  }
+  {}
 );
 
 function validateTgToken(token, callback){
